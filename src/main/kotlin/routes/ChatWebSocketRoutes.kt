@@ -10,7 +10,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.*
 import org.koin.ktor.ext.inject
 
@@ -44,26 +43,51 @@ fun Application.chatWebSocketRoute() {
                                     val message = Json.decodeFromString<ChatMessagePayload>(jsonText)
 
                                     if (message.content.isBlank()) {
-                                        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Empty message"))
+                                        close(
+                                            CloseReason(
+                                                CloseReason.Codes.CANNOT_ACCEPT,
+                                                "Empty message"
+                                            )
+                                        )
                                         return@consumeEach
                                     }
 
-                                    val senderUser = userService.getUserById(message.senderId)
-                                    val enrichedMessage = message.copy(
-                                        senderName = senderUser?.username ?: "User #${message.senderId}"
-                                    )
-
-                                    messageRepository.sendMessage(
+                                    val savedMessage = messageRepository.sendMessage(
                                         message.chatRoomId,
                                         message.senderId,
                                         message.content
                                     )
 
-                                    val broadcastJson = Json.encodeToString(enrichedMessage)
-                                    WebSocketSessionManager.broadcastMessage(message.chatRoomId, broadcastJson)
+                                    val senderUser = userService.getUserById(message.senderId)
+
+                                    val enrichedPayload = buildJsonObject {
+                                        put("type", JsonPrimitive("message"))
+                                        put("chatRoomId", JsonPrimitive(message.chatRoomId))
+                                        put("senderId", JsonPrimitive(message.senderId))
+                                        put(
+                                            "senderName",
+                                            JsonPrimitive(senderUser?.username ?: "User #${message.senderId}")
+                                        )
+                                        put("content", JsonPrimitive(savedMessage?.content ?: message.content))
+                                        put(
+                                            "timestamp",
+                                            JsonPrimitive(savedMessage?.createdAt.toString())
+                                        )
+                                        put("id", JsonPrimitive(savedMessage?.id ?: 0))
+                                    }
+
+                                    WebSocketSessionManager.broadcastMessage(
+                                        message.chatRoomId,
+                                        enrichedPayload.toString()
+                                    )
 
                                 } catch (e: Exception) {
-                                    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid message format"))
+                                    close(
+                                        CloseReason(
+                                            CloseReason.Codes.CANNOT_ACCEPT,
+                                            "Invalid message format"
+                                        )
+                                    )
                                 }
                             }
 
@@ -87,12 +111,22 @@ fun Application.chatWebSocketRoute() {
                                     // Notify all clients
                                     WebSocketSessionManager.broadcastMessage(reaction.chatRoomId, jsonText)
                                 } catch (e: Exception) {
-                                    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid reaction format"))
+                                    close(
+                                        CloseReason(
+                                            CloseReason.Codes.CANNOT_ACCEPT,
+                                            "Invalid reaction format"
+                                        )
+                                    )
                                 }
                             }
 
                             else -> {
-                                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Unsupported type"))
+                                close(
+                                    CloseReason(
+                                        CloseReason.Codes.CANNOT_ACCEPT,
+                                        "Unsupported type"
+                                    )
+                                )
                             }
                         }
                     }

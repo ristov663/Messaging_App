@@ -31,6 +31,6 @@ class UserServiceImpl(
     }
 
     override suspend fun deleteUser(id: Int): Boolean? {
-        return userRepository.deleteUser(id)
+        return userRepository.deleteUserSafely(id)
     }
 }

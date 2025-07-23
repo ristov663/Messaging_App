@@ -8,20 +8,30 @@ import com.example.db.tables.ChatRoomMembersTable
 import com.example.db.utils.dbQuery
 import com.example.domain.models.ChatRoom
 import com.example.domain.repos.ChatRoomRepository
+import org.jetbrains.exposed.sql.and
 
 class ChatRoomRepositoryImpl : ChatRoomRepository {
 
-    override suspend fun createChatRoom(name: String?, isGroup: Boolean, memberIds: List<Int>): ChatRoom? {
+    override suspend fun createChatRoom(
+        name: String?, isGroup: Boolean, memberIds: List<Int>
+    ): ChatRoom? {
         return dbQuery {
             val chatRoom = ChatRoomEntity.new {
                 this.name = name
                 this.isGroup = isGroup
             }
 
-            memberIds.forEach { userId ->
-                ChatRoomMemberEntity.new {
-                    this.chatRoom = chatRoom
-                    this.user = UserEntity[userId]
+            val uniqueMemberIds = memberIds.toSet()
+
+            uniqueMemberIds.forEach { userId ->
+                ChatRoomMemberEntity.find {
+                    (ChatRoomMembersTable.chatRoom eq chatRoom.id) and
+                            (ChatRoomMembersTable.user eq userId)
+                }.firstOrNull() ?: run {
+                    ChatRoomMemberEntity.new {
+                        this.chatRoom = chatRoom
+                        this.user = UserEntity[userId]
+                    }
                 }
             }
             chatRoom.toDomain()

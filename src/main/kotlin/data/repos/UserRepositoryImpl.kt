@@ -78,15 +78,13 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override suspend fun deleteUser(id: Int): Boolean? {
+    override suspend fun deleteUserSafely(userId: Int): Boolean? {
         return dbQuery {
-            val user = UserEntity.findById(id)
-            if (user != null) {
-                user.delete()
-                true
-            } else {
-                false
-            }
+            val user = UserEntity.findById(userId) ?: return@dbQuery false
+
+            user.username = "Deleted user #${user.id.value}"
+            user.email = "deleted-${user.id.value}@example.com"
+            true
         }
     }
 
