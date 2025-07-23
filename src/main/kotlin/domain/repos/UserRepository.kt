@@ -12,7 +12,7 @@ interface UserRepository {
     suspend fun authenticate(request: LoginRequest): User?
     suspend fun getAllUsers(): List<User>?
     suspend fun updateUser(id: Int, request: UpdateUserRequest): User?
-    suspend fun deleteUserSafely(userId: Int): Boolean?
+    suspend fun deleteUser(userId: Int): Boolean?
     fun hashPassword(password: String): String
     fun verifyPassword(plainPassword: String, hashedPassword: String): Boolean
 }

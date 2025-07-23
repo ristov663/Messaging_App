@@ -14,10 +14,12 @@ class UserEntity(id: EntityID<Int>) : IntEntity(id) {
     var password by UsersTable.password
     var createdAt by UsersTable.createdAt
     var updatedAt by UsersTable.updatedAt
+    var isDeleted by UsersTable.isDeleted
 
     fun toDomain() = User(
         id = id.value,
         username = username,
-        email = email
+        email = email,
+        isDeleted = isDeleted
     )
 }

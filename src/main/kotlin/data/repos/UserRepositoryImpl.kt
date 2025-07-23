@@ -27,7 +27,7 @@ class UserRepositoryImpl : UserRepository {
                 this.updatedAt = LocalDateTime.now()
                 this.password = hashPassword(request.password)
             }.let {
-                User(it.id.value, it.username, it.email)
+                User(it.id.value, it.username, it.email, it.isDeleted)
             }
         }
     }
@@ -45,14 +45,15 @@ class UserRepositoryImpl : UserRepository {
             user?.takeIf {
                 verifyPassword(request.password, user.password)
             }?.let {
-                User(user.id.value, user.username, it.email)
+                User(user.id.value, user.username, it.email, it.isDeleted)
             }
         }
     }
 
     override suspend fun getAllUsers(): List<User>? {
         return dbQuery {
-            UserEntity.all().map { it.toDomain() }
+            UserEntity.find { UsersTable.isDeleted eq false }
+                .map { it.toDomain() }
         }
     }
 
@@ -78,12 +79,11 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override suspend fun deleteUserSafely(userId: Int): Boolean? {
+    override suspend fun deleteUser(userId: Int): Boolean? {
         return dbQuery {
             val user = UserEntity.findById(userId) ?: return@dbQuery false
 
-            user.username = "Deleted user #${user.id.value}"
-            user.email = "deleted-${user.id.value}@example.com"
+            user.isDeleted = true
             true
         }
     }
