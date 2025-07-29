@@ -1,8 +1,10 @@
 package com.example.di
 
+import com.example.data.services.AIAgentServiceImpl
 import com.example.data.services.ChatRoomServiceImpl
 import com.example.data.services.MessageServiceImpl
 import com.example.data.services.UserServiceImpl
+import com.example.domain.services.AIAgentService
 import com.example.domain.services.ChatRoomService
 import com.example.domain.services.MessageService
 import com.example.domain.services.UserService
@@ -20,5 +22,9 @@ val servicesModule = module {
 
     single<ChatRoomService> {
         ChatRoomServiceImpl(get())
+    }
+
+    single<AIAgentService> {
+        AIAgentServiceImpl(get())
     }
 }

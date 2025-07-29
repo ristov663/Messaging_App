@@ -20,6 +20,13 @@ fun Application.initDatabase() {
     )
 
     transaction(db) {
-        SchemaUtils.create(UsersTable, MessagesTable, ChatRoomsTable, ChatRoomMembersTable, MessageReactionsTable)
+        SchemaUtils.create(
+            UsersTable,
+            MessagesTable,
+            ChatRoomsTable,
+            ChatRoomMembersTable,
+            MessageReactionsTable,
+            AIConversationsTable
+        )
     }
 }

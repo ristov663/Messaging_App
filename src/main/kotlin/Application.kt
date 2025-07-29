@@ -47,6 +47,7 @@ fun Application.module() {
     configSecurity(userService)
 
     chatWebSocketRoute()
+    aiAgentWebSocketRoute()
     userRoutes(userService)
     messageRoutes(messageService)
     chatRoomRoutes(chatRoomService)

@@ -58,4 +58,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("io.ktor:ktor-server-cors:2.3.4")
+
+    implementation("ai.koog:koog-agents:0.3.0")
 }
